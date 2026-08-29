@@ -36,6 +36,7 @@ For existing implementations see: HtmlRenderer.WinForms, HtmlRenderer.WPF and Ht
          prefers-color-scheme rendering deterministic regardless of the host machine's own theme setting. -->
     <InternalsVisibleTo Include="HtmlRenderer.WinForms" />
     <InternalsVisibleTo Include="HtmlRenderer.WPF" />
+    <InternalsVisibleTo Include="HtmlRenderer.WinUI" />
     <InternalsVisibleTo Include="HtmlRenderer.IntegrationTest" />
   </ItemGroup>
   <ItemGroup>

@@ -1,0 +1,46 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net8.0-windows10.0.19041.0</TargetFramework>
+    <TargetPlatformMinVersion>10.0.17763.0</TargetPlatformMinVersion>
+    <OutputType>Library</OutputType>
+    <RootNamespace>TheArtOfDev.HtmlRenderer.WinUI</RootNamespace>
+    <UseWinUI>true</UseWinUI>
+    <EnableWindowsTargeting>true</EnableWindowsTargeting>
+    <GenerateResourceUsePreserializedResources>true</GenerateResourceUsePreserializedResources>
+    <WindowsPackageType>None</WindowsPackageType>
+    <WindowsAppSDKSelfContained>false</WindowsAppSDKSelfContained>
+  </PropertyGroup>
+  <!-- NuGet Package Properties -->
+  <PropertyGroup>
+    <PackageId>HtmlRenderer.WinUI</PackageId>
+    <Title>HTML Renderer for WinUI 3</Title>
+    <PackageTags>html render renderer draw control WinUI Win2D</PackageTags>
+    <Description>Multipurpose (UI Controls / Image generation), 100% managed (C#), High performance HTML Rendering library for WinUI 3.
+
+HTML UI in .NET WinUI 3 applications using controls or static rendering.
+
+Features and Benefits:
+---
+* Controls: HtmlPanel, HtmlLabel.
+* Create images from HTML snippets.
+* 100% managed code and no external dependencies, no ActiveX, no MSHTML.
+* Extensive HTML 4.01 and CSS level 2 specifications support.
+* Support separating CSS from HTML by loading stylesheet code separately.
+* Support text selection, copy-paste and context menu.
+* Handles "real world" malformed HTML, it doesn't have to be XHTML.
+* Lightweight, only two DLLs (~300K).
+* High performance and low memory footprint.
+* Extendable and configurable.</Description>
+    <Summary>Multipurpose (UI Controls / Image generation), 100% managed (C#), High performance HTML Rendering library for WinUI 3.</Summary>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\HtmlRenderer\HtmlRenderer.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="Microsoft.WindowsAppSDK" Version="2.4.0" />
+    <PackageReference Include="Microsoft.Graphics.Win2D" Version="1.4.*" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="README.md" Pack="true" PackagePath="\"/>
+  </ItemGroup>
+</Project>
