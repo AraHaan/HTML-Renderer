@@ -45,11 +45,23 @@ jobs:
     - name: Verify SDK Installation
       run: dotnet --info
 
+    - name: Select build target
+      id: build-target
+      run: |
+        # HtmlRenderer.WinUI/HtmlRenderer.Demo.WinUI (Windows App SDK/Win2D, MSIX PRI generation via
+        # native makepri.exe/makeappx.exe) can only build on Windows - unlike the WinForms/WPF adapters,
+        # which cross-compile cleanly everywhere via EnableWindowsTargeting's reference-assembly story,
+        # there is no non-Windows equivalent for those native tools at all. Non-Windows runners build a
+        # solution filter excluding just those two projects; everything else still builds and tests
+        # identically on every OS.
+        $target = $IsWindows ? "Source/HtmlRenderer.sln" : "Source/HtmlRenderer.CrossPlatform.slnf"
+        echo "path=$target" >> $env:GITHUB_OUTPUT
+
     - name: Restore Dependencies
-      run: dotnet restore Source/HtmlRenderer.sln
+      run: dotnet restore ${{ steps.build-target.outputs.path }}
 
     - name: Build
-      run: dotnet build Source/HtmlRenderer.sln --configuration Release --no-restore
+      run: dotnet build ${{ steps.build-target.outputs.path }} --configuration Release --no-restore
 
     - name: Run Tests
       if: runner.os == 'Windows'
