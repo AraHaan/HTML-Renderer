@@ -56,7 +56,34 @@ namespace TheArtOfDev.HtmlRenderer.WinUI.Adapters
         /// call - Win2D layers are <see cref="IDisposable"/> and must be disposed in LIFO order, unlike
         /// WPF's <see cref="System.Windows.Media.DrawingContext.Pop"/>, which needs no such bookkeeping.
         /// </summary>
-        private readonly Stack<CanvasActiveLayer> _layerStack = new Stack<CanvasActiveLayer>();
+        private readonly Stack<ClipLayer> _layerStack = new Stack<ClipLayer>();
+
+        /// <summary>
+        /// A single entry of <see cref="_layerStack"/>: the pushed Win2D layer and, for
+        /// <see cref="PushClipExclude"/>, the geometry masking it. The mask has to outlive the layer - D2D
+        /// reads it until the layer is popped - so the two are released together in <see cref="PopClip"/>.
+        /// Both are null on a measure-only instance, which has no session to push a layer on.
+        /// </summary>
+        private readonly struct ClipLayer
+        {
+            public ClipLayer(CanvasActiveLayer layer, CanvasGeometry mask)
+            {
+                Layer = layer;
+                Mask = mask;
+            }
+
+            private CanvasActiveLayer Layer { get; }
+
+            private CanvasGeometry Mask { get; }
+
+            public void Dispose()
+            {
+                if (Layer != null)
+                    Layer.Dispose();
+                if (Mask != null)
+                    Mask.Dispose();
+            }
+        }
 
         #endregion
 
@@ -108,17 +135,36 @@ namespace TheArtOfDev.HtmlRenderer.WinUI.Adapters
         public override void PushClip(RRect rect)
         {
             _clipStack.Push(rect);
-            _layerStack.Push(_g.CreateLayer(1f, Utils.Convert(rect)));
+
+            // Measure-only instance - the clip is still tracked for layout, but there is no session to
+            // push it onto (same null-session guard as SetAntiAliasSmoothingMode below).
+            _layerStack.Push(_g != null
+                ? new ClipLayer(_g.CreateLayer(1f, Utils.Convert(rect)), null)
+                : new ClipLayer(null, null));
         }
 
         public override void PushClipExclude(RRect rect)
         {
-            var full = CanvasGeometry.CreateRectangle(_device, Utils.Convert(_clipStack.Peek()));
-            var excluded = CanvasGeometry.CreateRectangle(_device, Utils.Convert(rect));
-            var combined = full.CombineWith(excluded, Matrix3x2.Identity, CanvasGeometryCombine.Exclude);
+            var current = _clipStack.Peek();
+            _clipStack.Push(current);
 
-            _clipStack.Push(_clipStack.Peek());
-            _layerStack.Push(_g.CreateLayer(1f, combined));
+            if (_g == null)
+            {
+                _layerStack.Push(new ClipLayer(null, null));
+                return;
+            }
+
+            // full/excluded are only inputs to the combine, so they are released right away; combined is
+            // handed to the layer and released with it. All three are unmanaged D2D resources created on
+            // every clip-exclude of every paint, so none of them can be left to the finalizer.
+            CanvasGeometry combined;
+            using (var full = CanvasGeometry.CreateRectangle(_device, Utils.Convert(current)))
+            using (var excluded = CanvasGeometry.CreateRectangle(_device, Utils.Convert(rect)))
+            {
+                combined = full.CombineWith(excluded, Matrix3x2.Identity, CanvasGeometryCombine.Exclude);
+            }
+
+            _layerStack.Push(new ClipLayer(_g.CreateLayer(1f, combined), combined));
         }
 
         public override object SetAntiAliasSmoothingMode()

@@ -20,7 +20,19 @@
   </PropertyGroup>
   <PropertyGroup>
     <ApplicationManifest>app.manifest</ApplicationManifest>
+    <ApplicationIcon>html.ico</ApplicationIcon>
   </PropertyGroup>
+  <ItemGroup>
+    <!-- ApplicationIcon alone only stamps the .exe resource; MainWindow also loads this file at runtime
+         to set the window/taskbar icon, which a WinUI 3 window does not take from the exe on its own. -->
+    <Content Include="html.ico" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+  <Target Name="HideWindowsAppSDKPayloadFiles" AfterTargets="AddMicrosoftWindowsAppSDKPayloadFilesFromComponents">
+    <ItemGroup>
+      <None Update="@(None)" Visible="false"
+            Condition="'%(None.DefiningProjectName)' == 'Microsoft.WindowsAppSDK.SelfContained'" />
+    </ItemGroup>
+  </Target>
   <ItemGroup>
     <ProjectReference Include="..\..\HtmlRenderer.WinUI\HtmlRenderer.WinUI.csproj" />
     <ProjectReference Include="..\..\HtmlRenderer\HtmlRenderer.csproj" />

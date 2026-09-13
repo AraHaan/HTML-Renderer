@@ -62,6 +62,13 @@ namespace TheArtOfDev.HtmlRenderer.WinUI.Adapters
         /// </summary>
         private readonly CanvasDevice _device;
 
+        /// <summary>
+        /// The system settings object the app-theme subscription in the constructor hangs off - kept in a
+        /// field for the adapter lifetime because ColorValuesChanged only lives as long as the UISettings
+        /// instance does, so a local would be collected and the notification would never arrive.
+        /// </summary>
+        private readonly UISettings _uiSettings;
+
         // Backs LoadFontFaceFontInt's temp-file registration - CanvasFontSet's documented in-memory story
         // is a file Uri, mirroring WPF's own Fonts.GetFontFamilies(Uri) constraint (see that class's own
         // remarks) - one directory per process, cleaned up by the OS's normal temp-file housekeeping.
@@ -124,8 +131,8 @@ namespace TheArtOfDev.HtmlRenderer.WinUI.Adapters
                 // families upfront); its failure shouldn't prevent the adapter itself from initializing.
             }
 
-            var uiSettings = new UISettings();
-            uiSettings.ColorValuesChanged += (sender, e) =>
+            _uiSettings = new UISettings();
+            _uiSettings.ColorValuesChanged += (sender, e) =>
             {
                 var previous = _colorScheme;
                 _colorScheme = null;

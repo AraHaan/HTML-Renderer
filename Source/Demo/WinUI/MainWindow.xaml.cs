@@ -51,6 +51,13 @@ namespace TheArtOfDev.HtmlRenderer.Demo.WinUI
 
             Title = "HTML Renderer - WinUI 3 Demo";
 
+            // Unlike the WPF/WinForms demo windows, a WinUI 3 window does not pick up the executable
+            // icon stamped by the csproj ApplicationIcon property, so the title bar and taskbar show the
+            // generic default until AppWindow is pointed at the .ico explicitly. BaseDirectory rather
+            // than a relative path: SetIcon resolves against the working directory, which is not the app
+            // directory when the demo is launched from elsewhere.
+            AppWindow.SetIcon(Path.Combine(AppContext.BaseDirectory, "html.ico"));
+
             SamplesLoader.Init("WinUI", typeof(TheArtOfDev.HtmlRenderer.WinUI.HtmlRender).Assembly.GetName().Version.ToString());
 
             // Without this, showcase samples' <link rel="Stylesheet" href="StyleSheet"> never resolves, so
